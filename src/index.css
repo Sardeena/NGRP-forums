@@ -1,0 +1,80 @@
+@import "tailwindcss";
+
+@theme {
+  --color-ng-blue: #2a78d2;
+  --color-ng-dark: #1a1a1a;
+  --color-ng-row: #242424;
+  --color-ng-border: #333333;
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+}
+
+body {
+  background-color: #0f0f0f;
+  background-image: url("https://www.transparenttextures.com/patterns/asphalt-dark.png");
+  color: #e0e0e0;
+  font-family: var(--font-sans);
+}
+
+.glossy-blue {
+  background: linear-gradient(to bottom, #3a88e2 0%, #2a78d2 50%, #1a68c2 100%);
+  border-top: 1px solid rgba(255, 255, 255, 0.3);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.2), 0 2px 4px rgba(0, 0, 0, 0.5);
+}
+
+.forum-container {
+  background-color: rgba(20, 20, 20, 0.9);
+  border: 1px solid #333;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.6);
+}
+
+.sidebar-widget {
+  background-color: #1a1a1a;
+  border: 1px solid #333;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.sidebar-header {
+  background: linear-gradient(to bottom, #2a2a2a 0%, #1a1a1a 100%);
+  border-bottom: 1px solid #333;
+  padding: 8px 12px;
+  font-weight: bold;
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  color: #ccc;
+}
+
+.forum-row {
+  border-bottom: 1px solid #2a2a2a;
+  transition: background-color 0.2s;
+}
+
+.forum-row:hover {
+  background-color: #2a2a2a;
+}
+
+.forum-row:last-child {
+  border-bottom: none;
+}
+
+.blue-glow {
+  text-shadow: 0 0 8px rgba(42, 120, 210, 0.6);
+}
+
+/* Custom scrollbar for that old school feel */
+::-webkit-scrollbar {
+  width: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: #1a1a1a;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #333;
+  border-radius: 5px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #444;
+}

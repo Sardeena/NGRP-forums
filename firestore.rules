@@ -1,0 +1,149 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+
+    function isAdmin() {
+      return isAuthenticated() && 
+        (get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin' ||
+         (request.auth.token.email == "sardena449@gmail.com" && request.auth.token.email_verified == true));
+    }
+
+    function isStaff() {
+      return isAuthenticated() && (
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin' ||
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'moderator'
+      );
+    }
+
+    function isNotBanned() {
+      return !('isBanned' in get(/databases/$(database)/documents/users/$(request.auth.uid)).data) || 
+             get(/databases/$(database)/documents/users/$(request.auth.uid)).data.isBanned == false;
+    }
+
+    function isValidUser(data) {
+      return data.keys().hasAll(['uid', 'username', 'email', 'role', 'color', 'joinedAt']) &&
+             data.uid is string && data.uid == request.auth.uid &&
+             data.username is string && data.username.size() >= 3 && data.username.size() < 50 &&
+             data.email is string && data.email.size() < 100 && data.email.matches("^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$") &&
+             data.role in ['admin', 'moderator', 'member', 'user'] &&
+             data.color is string && data.color.matches("^#[0-9a-fA-F]{6}$") &&
+             data.joinedAt is string && data.joinedAt.size() < 20 &&
+             (!('signature' in data) || (data.signature is string && data.signature.size() < 1000));
+    }
+
+    function isValidLikeUpdate(resource, request) {
+      let oldLikes = 'likes' in resource.data ? resource.data.likes : [];
+      let newLikes = 'likes' in request.resource.data ? request.resource.data.likes : [];
+      return request.resource.data.diff(resource.data).affectedKeys().hasOnly(['likes']) &&
+             (
+               (newLikes.size() == oldLikes.size() + 1 && newLikes.hasAll(oldLikes) && newLikes.hasAll([request.auth.uid])) ||
+               (newLikes.size() == oldLikes.size() - 1 && oldLikes.hasAll(newLikes) && oldLikes.hasAll([request.auth.uid])) ||
+               (newLikes.size() == oldLikes.size() && newLikes.hasAll(oldLikes))
+             );
+    }
+
+    match /users/{uid} {
+      allow read: if isAuthenticated();
+      allow create: if isOwner(uid) && isValidUser(request.resource.data) && request.resource.data.role == 'member';
+      allow update: if isAuthenticated() && (
+        (isOwner(uid) && isValidUser(request.resource.data) && 
+         request.resource.data.role == resource.data.role &&
+         request.resource.data.email == resource.data.email &&
+         (!('postCount' in resource.data) || request.resource.data.postCount == resource.data.postCount) &&
+         (!('reputation' in resource.data) || request.resource.data.reputation == resource.data.reputation)) || 
+        isAdmin() || 
+        (isStaff() && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['isBanned', 'banReason', 'postCount', 'reputation', 'lastMessageAt']))
+      );
+      allow delete: if isAdmin();
+    }
+
+    function isValidThread(data) {
+      return data.keys().hasAll(['title', 'content', 'author', 'authorUid', 'subForum', 'createdAt', 'createdAtTimestamp']) &&
+             data.title is string && data.title.size() > 0 && data.title.size() < 100 &&
+             data.content is string && data.content.size() > 0 && data.content.size() < 10000 &&
+             data.authorUid == request.auth.uid &&
+             data.subForum is string;
+    }
+
+    function isValidPost(data) {
+      return data.keys().hasAll(['threadId', 'content', 'author', 'authorUid', 'timestamp']) &&
+             data.threadId is string &&
+             data.content is string && data.content.size() > 0 && data.content.size() < 10000 &&
+             data.authorUid == request.auth.uid;
+    }
+
+    match /threads/{threadId} {
+      allow read: if true;
+      allow create: if isAuthenticated() && isNotBanned() && isValidThread(request.resource.data);
+      allow update: if isAuthenticated() && (
+        (isOwner(resource.data.authorUid) && isValidThread(request.resource.data) && 
+         (!('isLocked' in request.resource.data) || request.resource.data.isLocked == false)) || 
+        isStaff() ||
+        (isNotBanned() && isValidLikeUpdate(resource, request))
+      );
+      allow delete: if isStaff();
+    }
+
+    match /posts/{postId} {
+      allow read: if true;
+      allow create: if isAuthenticated() && isNotBanned() && isValidPost(request.resource.data);
+      allow update: if isAuthenticated() && (
+        (isOwner(resource.data.authorUid) && isValidPost(request.resource.data)) || 
+        isStaff() ||
+        (isNotBanned() && isValidLikeUpdate(resource, request))
+      );
+      allow delete: if isStaff();
+    }
+
+    match /activities/{activityId} {
+      allow read: if true;
+      allow create: if isAuthenticated() && isNotBanned();
+      allow delete: if isStaff();
+    }
+
+    match /chat_messages/{messageId} {
+      allow read: if isAuthenticated();
+      allow create: if isAuthenticated() && isNotBanned();
+      allow update, delete: if isStaff();
+    }
+
+    match /forum_categories/{categoryId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    match /news/{newsId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    match /events/{eventId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    match /server_stats/{statsId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    match /forum_stats/{statsId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    match /support_tickets/{ticketId} {
+      allow read: if isAuthenticated() && (resource.data.uid == request.auth.uid || isStaff());
+      allow create: if isAuthenticated();
+      allow update: if isStaff();
+      allow delete: if isAdmin();
+    }
+  }
+}

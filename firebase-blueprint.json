@@ -1,0 +1,234 @@
+{
+  "entities": {
+    "UserProfile": {
+      "title": "UserProfile",
+      "description": "User profile information",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string" },
+        "username": { "type": "string" },
+        "email": { "type": "string" },
+        "role": { "type": "string", "enum": ["admin", "moderator", "member", "user"] },
+        "color": { "type": "string" },
+        "joinedAt": { "type": "string" },
+        "postCount": { "type": "number" },
+        "reputation": { "type": "number" },
+        "lastMessageAt": { "type": "number" },
+        "isBanned": { "type": "boolean" },
+        "banReason": { "type": "string" },
+        "signature": { "type": "string" },
+        "profileViews": { "type": "number" }
+      },
+      "required": ["uid", "username", "email", "role", "color", "joinedAt"]
+    },
+    "ForumCategory": {
+      "title": "ForumCategory",
+      "description": "Main forum category containing forums",
+      "type": "object",
+      "properties": {
+        "title": { "type": "string" },
+        "order": { "type": "number" },
+        "forums": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "name": { "type": "string" },
+              "description": { "type": "string" },
+              "topics": { "type": "number" },
+              "subForums": { "type": "array", "items": { "type": "string" } },
+              "lastPost": {
+                "type": "object",
+                "properties": {
+                  "user": { "type": "string" },
+                  "time": { "type": "string" },
+                  "thread": { "type": "string" }
+                }
+              }
+            }
+          }
+        }
+      },
+      "required": ["title", "order", "forums"]
+    },
+    "News": {
+      "title": "News",
+      "description": "Featured news item",
+      "type": "object",
+      "properties": {
+        "title": { "type": "string" },
+        "excerpt": { "type": "string" },
+        "imageUrl": { "type": "string" },
+        "author": { "type": "string" },
+        "date": { "type": "string" },
+        "isFeatured": { "type": "boolean" },
+        "timestamp": { "type": "number" }
+      },
+      "required": ["title", "excerpt", "author", "date", "timestamp"]
+    },
+    "Event": {
+      "title": "Event",
+      "description": "Upcoming server event",
+      "type": "object",
+      "properties": {
+        "title": { "type": "string" },
+        "date": { "type": "string" },
+        "time": { "type": "string" },
+        "location": { "type": "string" },
+        "timestamp": { "type": "number" }
+      },
+      "required": ["title", "date", "time", "location", "timestamp"]
+    },
+    "ServerStats": {
+      "title": "ServerStats",
+      "description": "Global server statistics",
+      "type": "object",
+      "properties": {
+        "status": { "type": "string" },
+        "playersOnline": { "type": "number" },
+        "maxPlayers": { "type": "number" },
+        "version": { "type": "string" }
+      },
+      "required": ["status", "playersOnline", "maxPlayers", "version"]
+    },
+    "ForumStats": {
+      "title": "ForumStats",
+      "description": "Global forum statistics",
+      "type": "object",
+      "properties": {
+        "totalPosts": { "type": "number" },
+        "totalTopics": { "type": "number" },
+        "totalMembers": { "type": "number" },
+        "newestMember": { "type": "string" },
+        "discordMembersOnline": { "type": "number" }
+      },
+      "required": ["totalPosts", "totalTopics", "totalMembers", "newestMember"]
+    },
+    "SupportTicket": {
+      "title": "SupportTicket",
+      "description": "User support ticket",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "uid": { "type": "string" },
+        "subject": { "type": "string" },
+        "category": { "type": "string" },
+        "message": { "type": "string" },
+        "status": { "type": "string", "enum": ["Pending", "Open", "Resolved"] },
+        "timestamp": { "type": "number" }
+      },
+      "required": ["id", "uid", "subject", "category", "message", "status", "timestamp"]
+    },
+    "Thread": {
+      "title": "Thread",
+      "description": "Forum thread",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "title": { "type": "string" },
+        "author": { "type": "string" },
+        "authorUid": { "type": "string" },
+        "replies": { "type": "number" },
+        "views": { "type": "number" },
+        "isPinned": { "type": "boolean" },
+        "isLocked": { "type": "boolean" },
+        "subForum": { "type": "string" },
+        "createdAt": { "type": "number" },
+        "content": { "type": "string" },
+        "likes": { "type": "array", "items": { "type": "string" } }
+      },
+      "required": ["id", "title", "author", "authorUid", "subForum", "createdAt", "content"]
+    },
+    "Post": {
+      "title": "Post",
+      "description": "Forum post/reply",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "threadId": { "type": "string" },
+        "author": { "type": "string" },
+        "authorUid": { "type": "string" },
+        "authorColor": { "type": "string" },
+        "content": { "type": "string" },
+        "timestamp": { "type": "number" },
+        "likes": { "type": "array", "items": { "type": "string" } }
+      },
+      "required": ["id", "threadId", "author", "authorUid", "content", "timestamp"]
+    },
+    "Activity": {
+      "title": "Activity",
+      "description": "Recent user activity",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "type": { "type": "string" },
+        "user": { "type": "string" },
+        "uid": { "type": "string" },
+        "targetId": { "type": "string" },
+        "targetTitle": { "type": "string" },
+        "timestamp": { "type": "number" }
+      },
+      "required": ["id", "type", "user", "uid", "targetId", "timestamp"]
+    },
+    "ChatMessage": {
+      "title": "ChatMessage",
+      "description": "Global chat message",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "uid": { "type": "string" },
+        "user": { "type": "string" },
+        "text": { "type": "string" },
+        "timestamp": { "type": "number" },
+        "color": { "type": "string" }
+      },
+      "required": ["id", "uid", "user", "text", "timestamp", "color"]
+    }
+  },
+  "firestore": {
+    "/users/{uid}": {
+      "schema": "UserProfile",
+      "description": "User profiles"
+    },
+    "/threads/{threadId}": {
+      "schema": "Thread",
+      "description": "Forum threads"
+    },
+    "/posts/{postId}": {
+      "schema": "Post",
+      "description": "Forum posts/replies"
+    },
+    "/activities/{activityId}": {
+      "schema": "Activity",
+      "description": "Recent activity feed"
+    },
+    "/chat_messages/{messageId}": {
+      "schema": "ChatMessage",
+      "description": "Global chat messages"
+    },
+    "/forum_categories/{categoryId}": {
+      "schema": "ForumCategory",
+      "description": "Forum categories and subforums"
+    },
+    "/news/{newsId}": {
+      "schema": "News",
+      "description": "Featured news and updates"
+    },
+    "/events/{eventId}": {
+      "schema": "Event",
+      "description": "Upcoming server events"
+    },
+    "/server_stats/{statsId}": {
+      "schema": "ServerStats",
+      "description": "Global server statistics"
+    },
+    "/forum_stats/{statsId}": {
+      "schema": "ForumStats",
+      "description": "Global forum statistics"
+    },
+    "/support_tickets/{ticketId}": {
+      "schema": "SupportTicket",
+      "description": "User support tickets"
+    }
+  }
+}
