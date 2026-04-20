@@ -282,6 +282,13 @@ export const ThreadView: React.FC<ThreadViewProps> = ({ threadId, forumName, use
               {thread.isPinned && <Star className="w-5 h-5 text-yellow-500 fill-yellow-500" />}
               {thread.isLocked && <Lock className="w-5 h-5 text-red-500" />}
               {thread.title}
+              <button 
+                onClick={() => handleToggleLike(thread.id, true)}
+                className={`flex items-center gap-2 text-xs transition-colors ml-4 ${thread.likes?.includes(user?.uid || '') ? 'text-ng-blue' : 'text-gray-500 hover:text-white'}`}
+              >
+                <ThumbsUp className={`w-5 h-5 ${thread.likes?.includes(user?.uid || '') ? 'fill-ng-blue' : ''}`} />
+                <span className="font-bold">{thread.likes?.length || 0}</span>
+              </button>
             </h2>
           )}
         </div>

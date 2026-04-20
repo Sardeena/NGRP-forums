@@ -35,7 +35,8 @@ service cloud.firestore {
              data.role in ['admin', 'moderator', 'member', 'user'] &&
              data.color is string && data.color.matches("^#[0-9a-fA-F]{6}$") &&
              data.joinedAt is string && data.joinedAt.size() < 20 &&
-             (!('signature' in data) || (data.signature is string && data.signature.size() < 1000));
+             (!('signature' in data) || (data.signature is string && data.signature.size() < 1000)) &&
+             (!('profileViews' in data) || (data.profileViews is int));
     }
 
     function isValidLikeUpdate(resource, request) {
@@ -59,13 +60,14 @@ service cloud.firestore {
          (!('postCount' in resource.data) || request.resource.data.postCount == resource.data.postCount) &&
          (!('reputation' in resource.data) || request.resource.data.reputation == resource.data.reputation)) || 
         isAdmin() || 
+        (isNotBanned() && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['profileViews'])) ||
         (isStaff() && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['isBanned', 'banReason', 'postCount', 'reputation', 'lastMessageAt']))
       );
       allow delete: if isAdmin();
     }
 
     function isValidThread(data) {
-      return data.keys().hasAll(['title', 'content', 'author', 'authorUid', 'subForum', 'createdAt', 'createdAtTimestamp']) &&
+      return data.keys().hasAll(['title', 'content', 'author', 'authorUid', 'subForum', 'createdAt']) &&
              data.title is string && data.title.size() > 0 && data.title.size() < 100 &&
              data.content is string && data.content.size() > 0 && data.content.size() < 10000 &&
              data.authorUid == request.auth.uid &&
@@ -86,7 +88,9 @@ service cloud.firestore {
         (isOwner(resource.data.authorUid) && isValidThread(request.resource.data) && 
          (!('isLocked' in request.resource.data) || request.resource.data.isLocked == false)) || 
         isStaff() ||
-        (isNotBanned() && isValidLikeUpdate(resource, request))
+        (isNotBanned() && isValidLikeUpdate(resource, request)) ||
+        (isAuthenticated() && request.resource.data.diff(resource.data).affectedKeys().hasAny(['views', 'replies', 'lastPost'])) ||
+        (isAuthenticated() && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['views']))
       );
       allow delete: if isStaff();
     }
@@ -136,6 +140,9 @@ service cloud.firestore {
 
     match /forum_stats/{statsId} {
       allow read: if true;
+      allow update: if isAuthenticated() && isNotBanned() && (
+        request.resource.data.diff(resource.data).affectedKeys().hasAny(['totalMembers', 'totalPosts', 'totalTopics', 'newestMember'])
+      );
       allow write: if isAdmin();
     }
 
