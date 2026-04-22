@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { MessageSquare, User, Clock, ChevronRight, Pin, Lock, ArrowUpDown, Plus, X, AlertCircle, Star, Bell, BellOff, ThumbsUp } from 'lucide-react';
+import { MessageSquare, User, Clock, ChevronRight, Pin, Lock, ArrowUpDown, Plus, X, AlertCircle, Star, Bell, BellOff, ThumbsUp, Type, Italic, Underline, Palette, Image as ImageIcon, Video, Link as LinkIcon } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Thread, UserProfile } from '../../types';
 import { collection, query, where, orderBy, onSnapshot, addDoc, serverTimestamp, doc, updateDoc, deleteDoc, getDoc, increment, arrayUnion, arrayRemove } from 'firebase/firestore';
@@ -22,6 +22,8 @@ export const ForumDetailView: React.FC<ForumDetailViewProps> = ({ forumName, use
   const [sortBy, setSortBy] = useState<SortOption>('lastPost');
   const [currentPage, setCurrentPage] = useState(1);
   const [isCreatingTopic, setIsCreatingTopic] = useState(false);
+  const [topicTitle, setTopicTitle] = useState("");
+  const [topicContent, setTopicContent] = useState("");
   const [selectedSubForum, setSelectedSubForum] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const pageSize = 10;
@@ -108,17 +110,13 @@ export const ForumDetailView: React.FC<ForumDetailViewProps> = ({ forumName, use
     e.preventDefault();
     if (!user) return;
 
-    const formData = new FormData(e.currentTarget);
-    const title = formData.get('title') as string;
-    const content = formData.get('content') as string;
-    
-    if (!title.trim() || !content.trim()) return;
+    if (!topicTitle.trim() || !topicContent.trim()) return;
 
     try {
       const now = Date.now();
       const threadData = {
-        title,
-        content,
+        title: topicTitle,
+        content: topicContent,
         author: user.username,
         authorUid: user.uid,
         replies: 0,
@@ -147,11 +145,13 @@ export const ForumDetailView: React.FC<ForumDetailViewProps> = ({ forumName, use
         user: user.username,
         uid: user.uid,
         targetId: docRef.id,
-        targetTitle: title,
+        targetTitle: topicTitle,
         timestamp: now
       });
 
       setIsCreatingTopic(false);
+      setTopicTitle("");
+      setTopicContent("");
     } catch (error) {
       console.error('Error creating topic:', error);
     }
@@ -421,14 +421,76 @@ export const ForumDetailView: React.FC<ForumDetailViewProps> = ({ forumName, use
                   <label className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">Topic Title</label>
                   <input 
                     name="title"
+                    value={topicTitle}
+                    onChange={(e) => setTopicTitle(e.target.value)}
                     required
                     className="w-full bg-black/40 border border-white/10 rounded px-4 py-3 text-sm text-white focus:outline-none focus:border-ng-blue/50"
                   />
                 </div>
                 <div className="flex flex-col gap-2">
                   <label className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">Initial Post</label>
+                  <div className="flex gap-2 mb-1">
+                    <button 
+                      type="button"
+                      onClick={() => setTopicContent(prev => prev + '[b][/b]')}
+                      className="p-1.5 bg-white/5 hover:bg-white/10 rounded text-gray-400 hover:text-white transition-colors"
+                      title="Bold"
+                    >
+                      <Type className="w-3.5 h-3.5" />
+                    </button>
+                    <button 
+                      type="button"
+                      onClick={() => setTopicContent(prev => prev + '[i][/i]')}
+                      className="p-1.5 bg-white/5 hover:bg-white/10 rounded text-gray-400 hover:text-white transition-colors"
+                      title="Italic"
+                    >
+                      <Italic className="w-3.5 h-3.5" />
+                    </button>
+                    <button 
+                      type="button"
+                      onClick={() => setTopicContent(prev => prev + '[u][/u]')}
+                      className="p-1.5 bg-white/5 hover:bg-white/10 rounded text-gray-400 hover:text-white transition-colors"
+                      title="Underline"
+                    >
+                      <Underline className="w-3.5 h-3.5" />
+                    </button>
+                    <button 
+                      type="button"
+                      onClick={() => setTopicContent(prev => prev + '[color=#00a3ff][/color]')}
+                      className="p-1.5 bg-white/5 hover:bg-white/10 rounded text-gray-400 hover:text-white transition-colors"
+                      title="Text Color"
+                    >
+                      <Palette className="w-3.5 h-3.5" />
+                    </button>
+                    <button 
+                      type="button"
+                      onClick={() => setTopicContent(prev => prev + '[img][/img]')}
+                      className="p-1.5 bg-white/5 hover:bg-white/10 rounded text-gray-400 hover:text-white transition-colors"
+                      title="Embed Image"
+                    >
+                      <ImageIcon className="w-3.5 h-3.5" />
+                    </button>
+                    <button 
+                      type="button"
+                      onClick={() => setTopicContent(prev => prev + '[video][/video]')}
+                      className="p-1.5 bg-white/5 hover:bg-white/10 rounded text-gray-400 hover:text-white transition-colors"
+                      title="Embed Video"
+                    >
+                      <Video className="w-3.5 h-3.5" />
+                    </button>
+                    <button 
+                      type="button"
+                      onClick={() => setTopicContent(prev => prev + '[url=][/url]')}
+                      className="p-1.5 bg-white/5 hover:bg-white/10 rounded text-gray-400 hover:text-white transition-colors"
+                      title="Insert Link"
+                    >
+                      <LinkIcon className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
                   <textarea 
                     name="content"
+                    value={topicContent}
+                    onChange={(e) => setTopicContent(e.target.value)}
                     required
                     className="w-full bg-black/40 border border-white/10 rounded p-4 text-sm text-white focus:outline-none focus:border-ng-blue/50 min-h-[150px]"
                   />

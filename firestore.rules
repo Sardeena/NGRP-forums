@@ -10,33 +10,40 @@ service cloud.firestore {
     }
 
     function isAdmin() {
-      return isAuthenticated() && 
-        (get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin' ||
-         (request.auth.token.email == "sardena449@gmail.com" && request.auth.token.email_verified == true));
-    }
-
-    function isStaff() {
       return isAuthenticated() && (
-        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin' ||
-        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'moderator'
+        (exists(/databases/$(database)/documents/users/$(request.auth.uid)) && 
+         get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin') ||
+        (request.auth.token.email == "sardena449@gmail.com" && request.auth.token.email_verified == true)
       );
     }
 
+    function isStaff() {
+      return isAuthenticated() && 
+        exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
+        (get(/databases/$(database)/documents/users/$(request.auth.uid)).data.get('role', 'user') in ['admin', 'moderator']);
+    }
+
     function isNotBanned() {
-      return !('isBanned' in get(/databases/$(database)/documents/users/$(request.auth.uid)).data) || 
-             get(/databases/$(database)/documents/users/$(request.auth.uid)).data.isBanned == false;
+      return !isAuthenticated() || 
+        !exists(/databases/$(database)/documents/users/$(request.auth.uid)) || 
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.get('isBanned', false) == false;
     }
 
     function isValidUser(data) {
       return data.keys().hasAll(['uid', 'username', 'email', 'role', 'color', 'joinedAt']) &&
-             data.uid is string && data.uid == request.auth.uid &&
-             data.username is string && data.username.size() >= 3 && data.username.size() < 50 &&
-             data.email is string && data.email.size() < 100 && data.email.matches("^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$") &&
-             data.role in ['admin', 'moderator', 'member', 'user'] &&
-             data.color is string && data.color.matches("^#[0-9a-fA-F]{6}$") &&
-             data.joinedAt is string && data.joinedAt.size() < 20 &&
-             (!('signature' in data) || (data.signature is string && data.signature.size() < 1000)) &&
-             (!('profileViews' in data) || (data.profileViews is int));
+             data.uid is string && 
+             data.username is string && 
+             data.email is string &&
+             data.role is string &&
+             data.color is string &&
+             data.joinedAt is string &&
+             (!('signature' in data) || (data.signature is string)) &&
+             (!('profileViews' in data) || (data.profileViews is int)) &&
+             (!('postCount' in data) || (data.postCount is int)) &&
+             (!('reputation' in data) || (data.reputation is int)) &&
+             (!('lastMessageAt' in data) || (data.lastMessageAt is int)) &&
+             (!('isBanned' in data) || (data.isBanned is bool)) &&
+             (!('banReason' in data) || (data.banReason is string));
     }
 
     function isValidLikeUpdate(resource, request) {
@@ -51,48 +58,44 @@ service cloud.firestore {
     }
 
     match /users/{uid} {
-      allow read: if isAuthenticated();
+      allow read: if true;
       allow create: if isOwner(uid) && isValidUser(request.resource.data) && request.resource.data.role == 'member';
-      allow update: if isAuthenticated() && (
-        (isOwner(uid) && isValidUser(request.resource.data) && 
-         request.resource.data.role == resource.data.role &&
-         request.resource.data.email == resource.data.email &&
-         (!('postCount' in resource.data) || request.resource.data.postCount == resource.data.postCount) &&
-         (!('reputation' in resource.data) || request.resource.data.reputation == resource.data.reputation)) || 
+      allow update: if (
+        (isAuthenticated() && isOwner(uid) && isValidUser(request.resource.data)) || 
         isAdmin() || 
-        (isNotBanned() && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['profileViews'])) ||
-        (isStaff() && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['isBanned', 'banReason', 'postCount', 'reputation', 'lastMessageAt']))
+        (request.resource.data.diff(resource.data).affectedKeys().hasOnly(['profileViews'])) ||
+        (isAuthenticated() && isNotBanned() && request.resource.data.diff(resource.data).affectedKeys().hasAny(['lastMessageAt', 'postCount', 'reputation'])) ||
+        (isStaff() && request.resource.data.diff(resource.data).affectedKeys().hasAny(['isBanned', 'banReason', 'role', 'postCount', 'reputation']))
       );
       allow delete: if isAdmin();
     }
 
     function isValidThread(data) {
       return data.keys().hasAll(['title', 'content', 'author', 'authorUid', 'subForum', 'createdAt']) &&
-             data.title is string && data.title.size() > 0 && data.title.size() < 100 &&
-             data.content is string && data.content.size() > 0 && data.content.size() < 10000 &&
-             data.authorUid == request.auth.uid &&
-             data.subForum is string;
+             data.title is string && 
+             data.content is string && 
+             data.authorUid == request.auth.uid;
     }
 
     function isValidPost(data) {
       return data.keys().hasAll(['threadId', 'content', 'author', 'authorUid', 'timestamp']) &&
              data.threadId is string &&
-             data.content is string && data.content.size() > 0 && data.content.size() < 10000 &&
+             data.content is string &&
              data.authorUid == request.auth.uid;
     }
 
     match /threads/{threadId} {
       allow read: if true;
       allow create: if isAuthenticated() && isNotBanned() && isValidThread(request.resource.data);
-      allow update: if isAuthenticated() && (
-        (isOwner(resource.data.authorUid) && isValidThread(request.resource.data) && 
+      allow update: if (
+        (isAuthenticated() && isOwner(resource.data.authorUid) && isValidThread(request.resource.data) && 
          (!('isLocked' in request.resource.data) || request.resource.data.isLocked == false)) || 
         isStaff() ||
         (isNotBanned() && isValidLikeUpdate(resource, request)) ||
-        (isAuthenticated() && request.resource.data.diff(resource.data).affectedKeys().hasAny(['views', 'replies', 'lastPost'])) ||
-        (isAuthenticated() && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['views']))
+        (request.resource.data.diff(resource.data).affectedKeys().hasOnly(['views'])) ||
+        (isAuthenticated() && request.resource.data.diff(resource.data).affectedKeys().hasAny(['views', 'replies', 'lastPost', 'likes']))
       );
-      allow delete: if isStaff();
+      allow delete: if isStaff() || isOwner(resource.data.authorUid);
     }
 
     match /posts/{postId} {
@@ -101,9 +104,10 @@ service cloud.firestore {
       allow update: if isAuthenticated() && (
         (isOwner(resource.data.authorUid) && isValidPost(request.resource.data)) || 
         isStaff() ||
-        (isNotBanned() && isValidLikeUpdate(resource, request))
+        (isNotBanned() && isValidLikeUpdate(resource, request)) ||
+        (request.resource.data.diff(resource.data).affectedKeys().hasAny(['likes', 'content', 'editHistory']))
       );
-      allow delete: if isStaff();
+      allow delete: if isStaff() || isOwner(resource.data.authorUid);
     }
 
     match /activities/{activityId} {
@@ -113,7 +117,7 @@ service cloud.firestore {
     }
 
     match /chat_messages/{messageId} {
-      allow read: if isAuthenticated();
+      allow read: if true;
       allow create: if isAuthenticated() && isNotBanned();
       allow update, delete: if isStaff();
     }
@@ -140,8 +144,8 @@ service cloud.firestore {
 
     match /forum_stats/{statsId} {
       allow read: if true;
-      allow update: if isAuthenticated() && isNotBanned() && (
-        request.resource.data.diff(resource.data).affectedKeys().hasAny(['totalMembers', 'totalPosts', 'totalTopics', 'newestMember'])
+      allow update: if isAuthenticated() && (
+        request.resource.data.diff(resource.data).affectedKeys().hasAny(['totalMembers', 'totalPosts', 'totalTopics', 'newestMember', 'discordMembersOnline'])
       );
       allow write: if isAdmin();
     }
@@ -149,7 +153,7 @@ service cloud.firestore {
     match /support_tickets/{ticketId} {
       allow read: if isAuthenticated() && (resource.data.uid == request.auth.uid || isStaff());
       allow create: if isAuthenticated();
-      allow update: if isStaff();
+      allow update: if isAuthenticated() && (resource.data.uid == request.auth.uid || isStaff());
       allow delete: if isAdmin();
     }
   }

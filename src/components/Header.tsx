@@ -73,7 +73,7 @@ export const Header: React.FC<HeaderProps> = ({ currentView, onViewChange, onFor
       <div className="bg-black/60 border-b border-white/5 py-2 px-4 flex justify-between items-center text-[10px] font-bold text-gray-400 uppercase tracking-widest">
         <div className="flex gap-4">
           <span className="hover:text-white cursor-pointer transition-colors">Contact Us</span>
-          <span className="hover:text-white cursor-pointer transition-colors">NG-Gaming</span>
+          <span className="hover:text-white cursor-pointer transition-colors">Reckless RP</span>
           <span className="hover:text-white cursor-pointer transition-colors">Privacy Policy</span>
         </div>
         <div className="flex gap-4 items-center">
@@ -119,17 +119,17 @@ export const Header: React.FC<HeaderProps> = ({ currentView, onViewChange, onFor
             onClick={() => onViewChange('home')}
             className="w-16 h-16 glossy-blue rounded-lg flex items-center justify-center shadow-2xl transform -rotate-3 border-2 border-white/20 cursor-pointer"
           >
-            <span className="text-white font-black text-3xl italic drop-shadow-lg">NG</span>
+            <span className="text-white font-black text-3xl italic drop-shadow-lg">RK</span>
           </div>
           <div className="flex flex-col">
             <h1 
               onClick={() => onViewChange('home')}
               className="text-4xl font-black text-white tracking-tighter drop-shadow-2xl italic cursor-pointer"
             >
-              NG-<span className="text-ng-blue">GAMING</span>
+              RECKLESS <span className="text-ng-blue">RP</span>
             </h1>
             <span className="text-[10px] font-bold text-gray-500 uppercase tracking-[0.3em] ml-1">
-              Next Generation Roleplay
+              San Andreas Roleplay
             </span>
           </div>
         </div>

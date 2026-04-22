@@ -126,7 +126,7 @@ export default function App() {
         forums: [
           {
             name: "News & Updates",
-            description: "Official news and updates regarding the NG-Gaming community.",
+            description: "Official news and updates regarding the Reckless RP community.",
             topics: 54,
             lastPost: { user: "AdminJohn", time: "Today, 10:45 AM", thread: "Server Update 3.1.5" },
             subForums: ["Archive", "Press Releases"]
@@ -392,12 +392,12 @@ export default function App() {
         <footer className="w-full bg-black/40 border-t border-white/5 p-8 flex flex-col items-center gap-4 text-gray-500 text-xs">
           <div className="flex gap-6">
             <span className="hover:text-white cursor-pointer">Contact Us</span>
-            <span className="hover:text-white cursor-pointer">NG-Gaming</span>
+            <span className="hover:text-white cursor-pointer">Reckless RP</span>
             <span className="hover:text-white cursor-pointer">Privacy Policy</span>
           </div>
           <div className="text-center flex flex-col gap-1">
-            <p>Powered by Invision Power Board © 2015 NG-Gaming.net</p>
-            <p className="text-[10px] opacity-50 uppercase tracking-widest">Recreated for nostalgia</p>
+            <p>Powered by Invision Power Board © 2026 Reckless RP</p>
+            <p className="text-[10px] opacity-50 uppercase tracking-widest">Driven by Passion</p>
           </div>
         </footer>
       </div>

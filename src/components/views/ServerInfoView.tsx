@@ -70,7 +70,7 @@ export const ServerInfoView: React.FC = () => {
               Getting Started
             </h3>
             <p className="text-xs text-gray-400 leading-relaxed">
-              Welcome to NG-Gaming! To get started, you'll need to create a character and pass our basic roleplay quiz. Once you're in, you can find a job, join a faction, or start your own gang. The possibilities are endless in our persistent world.
+              Welcome to Reckless RP! To get started, you'll need to create a character and pass our basic roleplay quiz. Once you're in, you can find a job, join a faction, or start your own gang. The possibilities are endless in our persistent world.
             </p>
           </div>
         </div>

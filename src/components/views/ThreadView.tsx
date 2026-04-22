@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { User, Clock, ChevronRight, Send, Reply, ThumbsUp, Flag, Share2, Edit2, Save, X as CloseIcon, Star, Lock, Image as ImageIcon, Video, Link as LinkIcon, Trash2, History } from 'lucide-react';
+import { User, Clock, ChevronRight, Send, Reply, ThumbsUp, Flag, Share2, Edit2, Save, X as CloseIcon, Star, Lock, Image as ImageIcon, Video, Link as LinkIcon, Trash2, History, Type, Italic, Underline, Palette } from 'lucide-react';
 import { Thread, Post, UserProfile } from '../../types';
 import { collection, query, where, orderBy, onSnapshot, addDoc, serverTimestamp, doc, updateDoc, deleteDoc, getDoc, arrayUnion, arrayRemove, increment } from 'firebase/firestore';
 import { db } from '../../firebase';
@@ -451,7 +451,28 @@ export const ThreadView: React.FC<ThreadViewProps> = ({ threadId, forumName, use
                   className="p-1.5 bg-white/5 hover:bg-white/10 rounded text-gray-400 hover:text-white transition-colors"
                   title="Bold"
                 >
-                  <span className="font-bold">B</span>
+                  <Type className="w-4 h-4" />
+                </button>
+                <button 
+                  onClick={() => setReplyText(prev => prev + '[i][/i]')}
+                  className="p-1.5 bg-white/5 hover:bg-white/10 rounded text-gray-400 hover:text-white transition-colors"
+                  title="Italic"
+                >
+                  <Italic className="w-4 h-4" />
+                </button>
+                <button 
+                  onClick={() => setReplyText(prev => prev + '[u][/u]')}
+                  className="p-1.5 bg-white/5 hover:bg-white/10 rounded text-gray-400 hover:text-white transition-colors"
+                  title="Underline"
+                >
+                  <Underline className="w-4 h-4" />
+                </button>
+                <button 
+                  onClick={() => setReplyText(prev => prev + '[color=#00a3ff][/color]')}
+                  className="p-1.5 bg-white/5 hover:bg-white/10 rounded text-gray-400 hover:text-white transition-colors"
+                  title="Text Color"
+                >
+                  <Palette className="w-4 h-4" />
                 </button>
                 <button 
                   onClick={() => setReplyText(prev => prev + '[img][/img]')}

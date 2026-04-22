@@ -131,7 +131,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ starredThreads = [], onThreadC
              <MessageCircle className="w-10 h-10 text-white" />
           </div>
           <div className="text-center">
-            <p className="text-white font-bold text-sm">NG-Gaming Community</p>
+            <p className="text-white font-bold text-sm">Reckless RP Community</p>
             <p className="text-[#5865F2] text-xs font-medium">{forumStats?.discordMembersOnline?.toLocaleString() || '1,240'} Members Online</p>
           </div>
           <button className="w-full py-2 bg-[#5865F2] hover:bg-[#4752C4] text-white text-xs font-bold rounded transition-colors shadow-md">
