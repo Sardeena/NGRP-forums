@@ -1,12 +1,14 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { Star, Shield, Zap, Check, CreditCard, Gift, Crown, Info, AlertCircle } from 'lucide-react';
+import { Star, Shield, Zap, Check, CreditCard, Gift, Crown, Info, AlertCircle, Coins, Wallet } from 'lucide-react';
 
 type Tier = 'silver' | 'gold' | 'platinum';
+type PaymentMethodType = 'paypal' | 'crypto' | 'wallet';
 
 export const DonateView: React.FC = () => {
   const [selectedTier, setSelectedTier] = useState<Tier>('gold');
   const [showPayment, setShowPayment] = useState(false);
+  const [paymentMethod, setPaymentMethod] = useState<PaymentMethodType>('paypal');
 
   const tiers = [
     {
@@ -67,9 +69,25 @@ export const DonateView: React.FC = () => {
 
       <div className="flex flex-col gap-4">
         <label className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">Payment Method</label>
-        <div className="grid grid-cols-2 gap-4">
-          <PaymentMethod icon={<CreditCard className="w-5 h-5" />} label="PayPal" active={true} />
-          <PaymentMethod icon={<CreditCard className="w-5 h-5" />} label="Stripe" active={false} />
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <PaymentMethod 
+            icon={<CreditCard className="w-5 h-5" />} 
+            label="PayPal" 
+            active={paymentMethod === 'paypal'} 
+            onClick={() => setPaymentMethod('paypal')}
+          />
+          <PaymentMethod 
+            icon={<Coins className="w-5 h-5" />} 
+            label="Crypto" 
+            active={paymentMethod === 'crypto'} 
+            onClick={() => setPaymentMethod('crypto')}
+          />
+          <PaymentMethod 
+            icon={<Wallet className="w-5 h-5" />} 
+            label="E-Wallet" 
+            active={paymentMethod === 'wallet'} 
+            onClick={() => setPaymentMethod('wallet')}
+          />
         </div>
       </div>
 
@@ -82,8 +100,10 @@ export const DonateView: React.FC = () => {
       </div>
 
       <button className="w-full py-4 glossy-blue text-white font-bold uppercase tracking-widest rounded shadow-lg hover:brightness-110 transition-all flex items-center justify-center gap-2">
-        <CreditCard className="w-4 h-4" />
-        Pay with PayPal
+        {paymentMethod === 'paypal' && <CreditCard className="w-4 h-4" />}
+        {paymentMethod === 'crypto' && <Coins className="w-4 h-4" />}
+        {paymentMethod === 'wallet' && <Wallet className="w-4 h-4" />}
+        Proceed with {paymentMethod === 'paypal' ? 'PayPal' : paymentMethod === 'crypto' ? 'Crypto' : 'E-Wallet'}
       </button>
     </motion.div>
   );
@@ -158,8 +178,11 @@ export const DonateView: React.FC = () => {
   );
 };
 
-const PaymentMethod: React.FC<{ icon: React.ReactNode; label: string; active: boolean }> = ({ icon, label, active }) => (
-  <div className={`p-4 rounded border flex items-center justify-center gap-3 cursor-pointer transition-all ${active ? 'border-ng-blue bg-ng-blue/10 text-white' : 'border-white/10 bg-black/40 text-gray-500 hover:border-white/20'}`}>
+const PaymentMethod: React.FC<{ icon: React.ReactNode; label: string; active: boolean; onClick: () => void }> = ({ icon, label, active, onClick }) => (
+  <div 
+    onClick={onClick}
+    className={`p-4 rounded border flex items-center justify-center gap-3 cursor-pointer transition-all ${active ? 'border-ng-blue bg-ng-blue/10 text-white' : 'border-white/10 bg-black/40 text-gray-500 hover:border-white/20'}`}
+  >
     {icon}
     <span className="text-xs font-bold uppercase tracking-widest">{label}</span>
   </div>

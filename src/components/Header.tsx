@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Home, MessageSquare, Settings, Info, DollarSign, LifeBuoy, LogIn, UserPlus, FileText, User, ChevronDown, Users, ShieldAlert, Car, Search } from 'lucide-react';
+import { Home, MessageSquare, Settings, Info, DollarSign, LifeBuoy, LogIn, UserPlus, FileText, User, ChevronDown, Users, ShieldAlert, Car, Search, Moon, Sun, ListTodo } from 'lucide-react';
 import { AuthModal } from './AuthModal';
 import { PasswordResetModal } from './PasswordResetModal';
 import { motion, AnimatePresence } from 'motion/react';
@@ -25,7 +25,31 @@ export const Header: React.FC<HeaderProps> = ({ currentView, onViewChange, onFor
   const [isResetModalOpen, setIsResetModalOpen] = useState(false);
   const [isFormsDropdownOpen, setIsFormsDropdownOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+  const [isDark, setIsDark] = useState(true);
   const dropdownRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const savedTheme = localStorage.getItem('theme') || 'dark';
+    if (savedTheme === 'light') {
+      setIsDark(false);
+      document.documentElement.classList.remove('dark');
+    } else {
+      setIsDark(true);
+      document.documentElement.classList.add('dark');
+    }
+  }, []);
+
+  const toggleTheme = () => {
+    const nextTheme = !isDark;
+    setIsDark(nextTheme);
+    if (nextTheme) {
+      document.documentElement.classList.add('dark');
+      localStorage.setItem('theme', 'dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+      localStorage.setItem('theme', 'light');
+    }
+  };
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -77,6 +101,14 @@ export const Header: React.FC<HeaderProps> = ({ currentView, onViewChange, onFor
           <span className="hover:text-white cursor-pointer transition-colors">Privacy Policy</span>
         </div>
         <div className="flex gap-4 items-center">
+          <button 
+            onClick={toggleTheme}
+            className="p-1.5 rounded-full hover:bg-white/10 transition-colors mr-2 cursor-pointer flex items-center justify-center"
+            title={isDark ? "Switch to Light Mode" : "Switch to Dark Mode"}
+          >
+            {isDark ? <Sun className="w-3.5 h-3.5 text-yellow-500" /> : <Moon className="w-3.5 h-3.5 text-white" />}
+          </button>
+          <div className="h-3 w-[1px] bg-white/10 mr-2"></div>
           {loading ? (
             <span>Loading...</span>
           ) : user ? (
@@ -256,6 +288,12 @@ export const Header: React.FC<HeaderProps> = ({ currentView, onViewChange, onFor
             icon={<User className="w-4 h-4" />} 
             label="Profile" 
             active={currentView === 'profile'} 
+          />
+          <NavItem 
+            onClick={() => onViewChange('tasks')}
+            icon={<ListTodo className="w-4 h-4" />} 
+            label="Tasks" 
+            active={currentView === 'tasks'} 
           />
         </div>
         <div className="ml-auto flex h-full">

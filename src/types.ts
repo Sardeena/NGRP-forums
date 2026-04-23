@@ -1,4 +1,12 @@
-export type View = 'home' | 'forums' | 'ucp' | 'server-info' | 'donate' | 'support' | 'forms' | 'forum-detail' | 'thread-view' | 'profile' | 'search';
+export type View = 'home' | 'forums' | 'ucp' | 'server-info' | 'donate' | 'support' | 'forms' | 'forum-detail' | 'thread-view' | 'profile' | 'search' | 'tasks';
+
+export interface Task {
+  id: string;
+  uid: string;
+  title: string;
+  completed: boolean;
+  createdAt: number;
+}
 
 export interface UserProfile {
   uid: string;

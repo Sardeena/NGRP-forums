@@ -53,11 +53,11 @@ export const AuthModal: React.FC<AuthModalProps> = ({ isOpen, onClose, onForgotP
         try {
           await setDoc(doc(db, 'users', user.uid), userProfile);
           
-          // Update forum stats
-          await updateDoc(doc(db, 'forum_stats', 'global'), {
+          // Update forum stats (use setDoc with merge: true to avoid issues if doc doesn't exist)
+          await setDoc(doc(db, 'forum_stats', 'global'), {
             totalMembers: increment(1),
             newestMember: username
-          });
+          }, { merge: true });
         } catch (error) {
           handleFirestoreError(error, OperationType.WRITE, `users/${user.uid}`);
         }

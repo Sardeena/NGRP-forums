@@ -21,6 +21,7 @@ import { FormsView } from './components/views/FormsView';
 import { ForumDetailView } from './components/views/ForumDetailView';
 import { ThreadView } from './components/views/ThreadView';
 import { ProfileView } from './components/views/ProfileView';
+import { TasksView } from './components/views/TasksView';
 
 const forumData = []; // Removed static data
 
@@ -94,8 +95,8 @@ export default function App() {
       });
       setForumCategories(categories);
       
-      // Seed data if empty
-      if (snapshot.empty) {
+      // Seed data if empty (only if admin is logged in)
+      if (snapshot.empty && auth.currentUser?.email === 'sardena449@gmail.com') {
         seedInitialData();
       }
     });
@@ -343,6 +344,8 @@ export default function App() {
             selectedThreadId={selectedThreadId}
           />
         );
+      case 'tasks':
+        return <TasksView user={user} />;
       default:
         return null;
     }

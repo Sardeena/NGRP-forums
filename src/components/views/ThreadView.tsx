@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { User, Clock, ChevronRight, Send, Reply, ThumbsUp, Flag, Share2, Edit2, Save, X as CloseIcon, Star, Lock, Image as ImageIcon, Video, Link as LinkIcon, Trash2, History, Type, Italic, Underline, Palette } from 'lucide-react';
+import { User, Clock, ChevronRight, Send, Reply, ThumbsUp, Flag, Share2, Edit2, Save, X as CloseIcon, Star, Lock, Image as ImageIcon, Video, Link as LinkIcon, Trash2, History, Type, Italic, Underline, Palette, Check } from 'lucide-react';
 import { Thread, Post, UserProfile } from '../../types';
 import { collection, query, where, orderBy, onSnapshot, addDoc, serverTimestamp, doc, updateDoc, deleteDoc, getDoc, arrayUnion, arrayRemove, increment } from 'firebase/firestore';
 import { db } from '../../firebase';
@@ -23,8 +23,53 @@ export const ThreadView: React.FC<ThreadViewProps> = ({ threadId, forumName, use
   const [editingPostId, setEditingPostId] = useState<string | null>(null);
   const [editedPostContent, setEditedPostContent] = useState("");
   const [historyModalPostId, setHistoryModalPostId] = useState<string | null>(null);
+  const [showColorPicker, setShowColorPicker] = useState(false);
   const [loading, setLoading] = useState(true);
   const scrollRef = useRef<HTMLDivElement>(null);
+
+  const colors = [
+    '#ffffff', '#00a3ff', '#22c55e', '#ef4444', '#eab308', 
+    '#a855f7', '#ec4899', '#f97316', '#06b6d4', '#8b5cf6',
+    '#000000', '#94a3b8'
+  ];
+
+  const insertBBCode = (tag: string, value: string = '') => {
+    const input = document.getElementById('reply-textarea') as HTMLTextAreaElement;
+    if (!input) return;
+
+    const start = input.selectionStart;
+    const end = input.selectionEnd;
+    const text = input.value;
+    const selected = text.substring(start, end);
+    
+    let replacement = '';
+    if (tag === 'color') {
+      replacement = `[color=${value}]${selected}[/color]`;
+    } else if (tag === 'url') {
+      const url = window.prompt('Enter the URL link:', 'https://');
+      if (url === null) return;
+      replacement = selected ? `[url=${url}]${selected}[/url]` : `[url]${url}[/url]`;
+    } else if (tag === 'img') {
+      const url = window.prompt('Enter the Image URL:', 'https://');
+      if (url === null) return;
+      replacement = `[img]${url}[/img]`;
+    } else {
+      replacement = `[${tag}]${selected}[/${tag}]`;
+    }
+
+    const newText = text.substring(0, start) + replacement + text.substring(end);
+    setReplyText(newText);
+    
+    // Focus back
+    setTimeout(() => {
+      input.focus();
+      // Adjust cursor position to be inside the tags if no text was selected
+      if (start === end) {
+        const tagLength = tag === 'color' ? tag.length + value.length + 8 : tag.length + 2;
+        input.setSelectionRange(start + tagLength, start + tagLength);
+      }
+    }, 0);
+  };
 
   useEffect(() => {
     const threadRef = doc(db, 'threads', threadId);
@@ -445,51 +490,77 @@ export const ThreadView: React.FC<ThreadViewProps> = ({ threadId, forumName, use
               Quick Reply
             </div>
             <div className="p-6 bg-ng-dark/95 flex flex-col gap-4">
-              <div className="flex gap-2 mb-2">
+              <div className="flex flex-wrap gap-2 mb-2 relative">
                 <button 
-                  onClick={() => setReplyText(prev => prev + '[b][/b]')}
+                  onClick={() => insertBBCode('b')}
                   className="p-1.5 bg-white/5 hover:bg-white/10 rounded text-gray-400 hover:text-white transition-colors"
                   title="Bold"
                 >
                   <Type className="w-4 h-4" />
                 </button>
                 <button 
-                  onClick={() => setReplyText(prev => prev + '[i][/i]')}
+                  onClick={() => insertBBCode('i')}
                   className="p-1.5 bg-white/5 hover:bg-white/10 rounded text-gray-400 hover:text-white transition-colors"
                   title="Italic"
                 >
                   <Italic className="w-4 h-4" />
                 </button>
                 <button 
-                  onClick={() => setReplyText(prev => prev + '[u][/u]')}
+                  onClick={() => insertBBCode('u')}
                   className="p-1.5 bg-white/5 hover:bg-white/10 rounded text-gray-400 hover:text-white transition-colors"
                   title="Underline"
                 >
                   <Underline className="w-4 h-4" />
                 </button>
+                
+                <div className="relative">
+                  <button 
+                    onClick={() => setShowColorPicker(!showColorPicker)}
+                    className={`p-1.5 bg-white/5 hover:bg-white/10 rounded transition-colors ${showColorPicker ? 'text-ng-blue' : 'text-gray-400 hover:text-white'}`}
+                    title="Text Color"
+                  >
+                    <Palette className="w-4 h-4" />
+                  </button>
+                  <AnimatePresence>
+                    {showColorPicker && (
+                      <motion.div 
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: 10 }}
+                        className="absolute bottom-full left-0 mb-2 p-3 bg-ng-dark border border-white/10 rounded shadow-2xl z-50 grid grid-cols-4 gap-2 w-48"
+                      >
+                        {colors.map((c) => (
+                          <button
+                            key={c}
+                            onClick={() => {
+                              insertBBCode('color', c);
+                              setShowColorPicker(false);
+                            }}
+                            className="w-full aspect-square rounded border border-white/10 hover:scale-110 transition-transform"
+                            style={{ backgroundColor: c }}
+                          />
+                        ))}
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </div>
+
                 <button 
-                  onClick={() => setReplyText(prev => prev + '[color=#00a3ff][/color]')}
-                  className="p-1.5 bg-white/5 hover:bg-white/10 rounded text-gray-400 hover:text-white transition-colors"
-                  title="Text Color"
-                >
-                  <Palette className="w-4 h-4" />
-                </button>
-                <button 
-                  onClick={() => setReplyText(prev => prev + '[img][/img]')}
+                  onClick={() => insertBBCode('img')}
                   className="p-1.5 bg-white/5 hover:bg-white/10 rounded text-gray-400 hover:text-white transition-colors"
                   title="Embed Image"
                 >
                   <ImageIcon className="w-4 h-4" />
                 </button>
                 <button 
-                  onClick={() => setReplyText(prev => prev + '[video][/video]')}
+                  onClick={() => insertBBCode('video')}
                   className="p-1.5 bg-white/5 hover:bg-white/10 rounded text-gray-400 hover:text-white transition-colors"
                   title="Embed Video"
                 >
                   <Video className="w-4 h-4" />
                 </button>
                 <button 
-                  onClick={() => setReplyText(prev => prev + '[url=][/url]')}
+                  onClick={() => insertBBCode('url')}
                   className="p-1.5 bg-white/5 hover:bg-white/10 rounded text-gray-400 hover:text-white transition-colors"
                   title="Insert Link"
                 >
@@ -497,6 +568,7 @@ export const ThreadView: React.FC<ThreadViewProps> = ({ threadId, forumName, use
                 </button>
               </div>
               <textarea 
+                id="reply-textarea"
                 value={replyText}
                 onChange={(e) => setReplyText(e.target.value)}
                 className="w-full bg-black/40 border border-white/10 rounded p-4 text-sm text-white focus:outline-none focus:border-ng-blue/50 min-h-[120px]"
